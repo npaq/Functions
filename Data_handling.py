@@ -1,5 +1,6 @@
 import os 
 import sqlite3
+import csv
 #---------------------------------------------------------------------------------
 #                                   FUNCTIONS
 #---------------------------------------------------------------------------------
@@ -20,7 +21,7 @@ def db_listOfTables(conn):
     return tables
 
 # Fetching data in a DB table
-def db_fetchingData(table, conn):
+def db_fetchData(table, conn):
     """
     table [string] : table name in the DB
     conn : connection to the DB to which the table belongs
@@ -46,7 +47,7 @@ def db_fetchingData(table, conn):
     return(list)
 
 # Creating a dictionary from a DB
-def db_creatingDictionary(items, keys, key2):
+def db_createDictionary(items, keys, key2):
     """
     items [list] : rows extracted from a table. Each row is a tuple corresponding to a row in the table
     keys [list] : keys of the dictionary to be created by the function (optional)
@@ -75,7 +76,7 @@ def db_creatingDictionary(items, keys, key2):
     return dic
 
 # Creating a dictionary from raw data in a file (txt)
-def file_creatingDictionary(data):
+def file_createDictionary(data):
     """
     data [list] : rows in the file 
     split() : create a list by splitting the line around "="
@@ -86,36 +87,74 @@ def file_creatingDictionary(data):
     dic = {r.split('=')[0].strip(): float(r.split('=')[1].strip().replace(',', '.')) for r in data}
     return dic
 
-# Create output DB
-def createOutputDB(path):
+# Create DB
+def createDB(path, dbName, note):
     """
-    Create the DB with the results
+    Create a sqlite DB
     Default name of the DB: Results.db
+    path [str] : location of the DB 
+    dbName [str] : name of the db (optional) 
+    note_lst : list where each row contains a line of comment. 
     Return the connection the DB 
     """
-    # output DB connection
-    # Default name of the output DB
-    defaultDdName = "Results.db"
-
-    outputDdName = input("Name of the output DB (default : Results.db): ")
-    if outputDdName =='': 
-        outputDdName = defaultDdName
-    else:
-        outputDdName = outputDdName.replace(' ', '_')
-        outputDdName = outputDdName + '.db'
+    if not dbName: 
+        # Default name of the output DB
+        defaultDdName = "Results"
+        dbName = input("Name of the DB (default : Results.db): ")
+        if dbName =='': 
+            dbName = defaultDdName
     
+    dbName = dbName.replace(' ', '_')
+    dbName = dbName + '.db'    
     if os.sys.platform == 'win32':
-        path_output = path + '\\' + outputDdName
+        db = path + '\\' + dbName
     else: 
-        path_output = path + '/' + outputDdName
+        db = path + '/' + dbName
     
-    conn = sqlite3.connect(path_output)
+    try:
+        conn = sqlite3.connect(db)
+        print('DB ', dbName, ' has been created in ', path)
+    except Exception as ex:
+        print(ex)
+    
+    if not note: note = []
+    n = input("Insert a note (optional): ")
+    if n : note.append(n)
+    
+    if note : 
+        # Drop table Note
+        cursor = conn.cursor()
+        cursor.execute( 
+            """
+            DROP TABLE IF EXISTS Note;
+            """
+        )
+        # Create table Note
+        try: 
+            cursor.execute( \
+                """
+                CREATE TABLE IF NOT EXISTS Note(
+                    Note TEXT
+                    );"""
+            ) 
+            # Insert each line of comment into Table Note
+            for r in note:
+                cursor.execute(\
+                    """
+                    INSERT INTO Note VALUES (?);    
+                    """, (r, )
+                )
+            conn.commit()
+            print('Table Note has been created')
+        except Exception as ex:
+            print(ex)
     return conn
 
 
-# Create output tables for radiological consequences
-def outputTablesRadiologicalImpact(conn, tableName, colNames):
+# Create output tables 
+def createTable(conn, tableName, colNames):
     cursor = conn.cursor()
+
     # Drop table Result
     cursor.execute( 
         """
@@ -130,9 +169,15 @@ def outputTablesRadiologicalImpact(conn, tableName, colNames):
         if c != colNames[-1]: 
             query = query + c + ' TEXT, '
         else:
-            query = query + 'Dose REAL);'
-    cursor.execute(query) 
-    conn.commit()
+            query = query + c + ' TEXT);'
+    try: 
+        cursor.execute(query)
+        print('Table ', tableName, ' has been created in the DB')
+    except sqlite3.Error as error:
+        print("Failed to create table in the DB", error)
+    finally:
+        cursor.close() 
+        conn.commit()
 
 # Create output tables (pivoted) for radiological consequences
 def outputTablesRadiologicalImpact_pivoted(conn, tableName, note_lst, doseTypes, ageGroups):
@@ -193,3 +238,47 @@ def outputTablesRadiologicalImpact_pivoted(conn, tableName, note_lst, doseTypes,
                 query = query + doseType + '_' + ageGroup + ' ' + 'REAL ' + ', '
     cursor.execute(query) 
     conn.commit()
+
+def insertTable(conn,tableName, colNames, r):
+    cursor = conn.cursor()
+    # recording in the table result
+    query = """
+        INSERT INTO {tab}(""".format(tab = tableName)
+    for c in colNames:
+        if c != colNames[-1]: 
+            query = query + c + ', '
+        else:
+            query = query + c + ') VALUES ('
+            for l in colNames:
+                if l != colNames[-1]:
+                    query = query + '?, '
+                else:
+                    query = query + '?);'
+    try: 
+        cursor.execute(query, r)
+    except sqlite3.Error as error:
+        print("Failed to insert Python variable into sqlite table", error)
+
+def write_CSV(pathname, fileName, colName, data):
+    """
+    Write data in a CSV file
+    pathname [str] : folder location of the csv file 
+    fileName [str] : name of the csv file
+    colName [str] : name of the columns
+    data [dictionary]: data to be recorded
+    """
+    csv_file = os.path.join(pathname,fileName)
+    try:
+        if not os.path.isfile(csv_file):
+            with open(csv_file, 'a', newline='') as file:
+                writer = csv.writer(file, delimiter=';')
+                writer.writerow(colName)
+            print(fileName, ' has been created in : ', pathname) 
+        with open(csv_file, 'a', newline='') as file:
+            writer = csv.writer(file, delimiter=';')
+            for k, v in data.items():
+                r = list(k)
+                r.append(v)
+                writer.writerow(r)
+    except IOError:
+        print("I/O error")
