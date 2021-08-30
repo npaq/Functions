@@ -6,7 +6,7 @@ import csv
 #---------------------------------------------------------------------------------
 
 # List of tables in a DB
-def db_listOfTables(conn):
+def db_list_of_tables(conn):
     """
     conn : connection to the DB
     tables : retun the list of table names in the DB
@@ -21,7 +21,7 @@ def db_listOfTables(conn):
     return tables
 
 # Fetching data in a DB table
-def db_fetchData(table, conn):
+def db_fetch_data(table, conn):
     """
     table [string] : table name in the DB
     conn : connection to the DB to which the table belongs
@@ -47,7 +47,7 @@ def db_fetchData(table, conn):
     return(list)
 
 # Creating a dictionary from a DB
-def db_createDictionary(items, keys, key2):
+def db_create_dictionary(items, keys, key2):
     """
     items [list] : rows extracted from a table. Each row is a tuple corresponding to a row in the table
     keys [list] : keys of the dictionary to be created by the function (optional)
@@ -76,7 +76,7 @@ def db_createDictionary(items, keys, key2):
     return dic
 
 # Creating a dictionary from raw data in a file (txt)
-def file_createDictionary(data):
+def file_create_dictionary(data):
     """
     data [list] : rows in the file 
     split() : create a list by splitting the line around "="
@@ -88,7 +88,7 @@ def file_createDictionary(data):
     return dic
 
 # Create DB
-def createDB(path, dbName, note):
+def create_db(path, dbName, note):
     """
     Create a sqlite DB
     Default name of the DB: Results.db
@@ -105,17 +105,17 @@ def createDB(path, dbName, note):
             dbName = defaultDdName
     
     dbName = dbName.replace(' ', '_')
-    dbName = dbName + '.db'    
-    if os.sys.platform == 'win32':
-        db = path + '\\' + dbName
-    else: 
-        db = path + '/' + dbName
-    
-    try:
-        conn = sqlite3.connect(db)
-        print('DB ', dbName, ' has been created in ', path)
-    except Exception as ex:
-        print(ex)
+    dbName = dbName + '.db'   
+    # Drop DB before creating it  
+    try: 
+        os.remove(os.path.join(path, dbName))
+        print('The DB ', dbName, ' has been dropped')
+        conn = sqlite3.connect(os.path.join(path, dbName))
+        print('The DB ', dbName, ' has been created in ', path)
+    except:
+        print('The DB ', dbName, ' does not exist yet')
+        conn = sqlite3.connect(os.path.join(path, dbName))
+        print('The DB ', dbName, ' has been created in ', path)
     
     if not note: note = []
     n = input("Insert a note (optional): ")
@@ -152,9 +152,9 @@ def createDB(path, dbName, note):
 
 
 # Create output tables 
-def createTable(conn, tableName, colNames):
+def create_table(conn, tableName, colNames):
+    tableName = tableName.replace(' ', '_')
     cursor = conn.cursor()
-
     # Drop table Result
     cursor.execute( 
         """
@@ -239,7 +239,7 @@ def outputTablesRadiologicalImpact_pivoted(conn, tableName, note_lst, doseTypes,
     cursor.execute(query) 
     conn.commit()
 
-def insertTable(conn,tableName, colNames, r):
+def insert_table(conn,tableName, colNames, r):
     cursor = conn.cursor()
     # recording in the table result
     query = """
@@ -259,7 +259,7 @@ def insertTable(conn,tableName, colNames, r):
     except sqlite3.Error as error:
         print("Failed to insert Python variable into sqlite table", error)
 
-def write_CSV(pathname, fileName, colName, data):
+def write_csv(pathname, fileName, colName, data):
     """
     Write data in a CSV file
     pathname [str] : folder location of the csv file 

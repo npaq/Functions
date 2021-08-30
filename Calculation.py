@@ -2,7 +2,7 @@ import os
 import sqlite3
 import sys
 import csv
-from Functions.Data_handling import insertTable
+from Functions.Data_handling import insert_table
 
 
 # Calculation of radiological impact
@@ -86,9 +86,8 @@ def radiologicalImpact(
                     # --------------------------
                     # recording in the table result
                     r = [unit, scenario, isotope, doseType, ageGroup, dose[resultName]]
-                    insertTable(conn, tableName, colNames, r)        
+                    insert_table(conn, tableName, colNames, r)        
     conn.commit()
-
     return d
 
 
