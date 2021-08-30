@@ -16,8 +16,8 @@ def db_list_of_tables(conn):
     
     tables = cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     tables = [Tuple[0] for Tuple in tables]
-    # Remove tables where 'meta_' is in the name of the table (i.e. metadata not used in the program)
-    tables = [x for x in tables if 'meta_' not in x]
+    # Remove tables where '_' is the first character of the table (i.e. metadata not used in the program)
+    tables = [t for t in tables if t[0] != '_']
     return tables
 
 # Fetching data in a DB table
@@ -30,7 +30,7 @@ def db_fetch_data(table, conn):
     cursor = conn.cursor()
     res = cursor.execute(selectQuery)
     columns = [Tuple[0] for Tuple in res.description]
-    columns = [x for x in columns if 'Meta_' not in x]
+    columns = [c for c in columns if c[0] != '_']
     
     selectQuery = 'SELECT '
     for column in columns:
@@ -106,6 +106,11 @@ def create_db(path, dbName, note):
     
     dbName = dbName.replace(' ', '_')
     dbName = dbName + '.db'   
+    
+    if not note: note = []
+    n = input("Insert a note (optional): ")
+    if n : note.append(n)
+    
     # Drop DB before creating it  
     try: 
         os.remove(os.path.join(path, dbName))
@@ -117,23 +122,19 @@ def create_db(path, dbName, note):
         conn = sqlite3.connect(os.path.join(path, dbName))
         print('The DB ', dbName, ' has been created in ', path)
     
-    if not note: note = []
-    n = input("Insert a note (optional): ")
-    if n : note.append(n)
-    
     if note : 
         # Drop table Note
         cursor = conn.cursor()
         cursor.execute( 
             """
-            DROP TABLE IF EXISTS Note;
+            DROP TABLE IF EXISTS _Note;
             """
         )
         # Create table Note
         try: 
             cursor.execute( \
                 """
-                CREATE TABLE IF NOT EXISTS Note(
+                CREATE TABLE IF NOT EXISTS _Note(
                     Note TEXT
                     );"""
             ) 
@@ -141,11 +142,11 @@ def create_db(path, dbName, note):
             for r in note:
                 cursor.execute(\
                     """
-                    INSERT INTO Note VALUES (?);    
+                    INSERT INTO _Note VALUES (?);    
                     """, (r, )
                 )
             conn.commit()
-            print('Table Note has been created')
+            print('Table _Note has been created')
         except Exception as ex:
             print(ex)
     return conn
@@ -163,7 +164,7 @@ def create_table(conn, tableName, colNames):
         )
     # Create table results (i.e. tableName)
     query = """CREATE TABLE IF NOT EXISTS {tab}(
-                id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE
+                _id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE
                 , """.format(tab = tableName)
     for c in colNames:
         if c != colNames[-1]: 
@@ -172,7 +173,7 @@ def create_table(conn, tableName, colNames):
             query = query + c + ' TEXT);'
     try: 
         cursor.execute(query)
-        print('Table ', tableName, ' has been created in the DB')
+        print('Table', tableName, 'has been created in the DB')
     except sqlite3.Error as error:
         print("Failed to create table in the DB", error)
     finally:
@@ -225,7 +226,7 @@ def outputTablesRadiologicalImpact_pivoted(conn, tableName, note_lst, doseTypes,
         )
     # Create table results (i.e. tableName)
     query = """CREATE TABLE IF NOT EXISTS {tab}(
-                id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE
+                _id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE
                 , Unit TEXT
                 , Scenario TEXT
                 , Isotope TEXT
