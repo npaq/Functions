@@ -134,4 +134,5 @@ dmypy.json
 
 #Other 
 Data_handling_old.py
+.DS_Store
 
