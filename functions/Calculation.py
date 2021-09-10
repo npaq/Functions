@@ -2,7 +2,7 @@ import os
 import sqlite3
 import sys
 import csv
-from Data_handling import insert_table
+from .Data_handling import insert_table
 
 
 # Calculation of radiological impact
