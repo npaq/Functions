@@ -136,3 +136,6 @@ dmypy.json
 Data_handling_old.py
 .DS_Store
 
+#PyCharm
+.idea/
+
