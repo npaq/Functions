@@ -8,6 +8,6 @@ setup(
     author='Nicolas Paquet',
     author_email='nicolas.paquet@tractebel.engie.com',
     license='LICENSE.txt',
-    zip_safe=False,
+    zip_safe=False
 )
 
