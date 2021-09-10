@@ -15,16 +15,16 @@ __NOTE:__ if you are not using SSH keys as authentication method for github, you
 # Usage
 
 ```python
-import Functions
+import functions
 
-Functions.function_name()
+functions.function_name()
 ```
 
 # List of available functions
 
-- from __Calculations.py__:
+- from __calculations.py__:
     - radiologicalImpact
-- from __Data_handling.py__:
+- from __data_handling.py__:
     - db_list_of_tables
     - db_fetch_data
     - db_create_dictionary
@@ -34,6 +34,19 @@ Functions.function_name()
     - outputTablesRadiologicalImpact_pivoted
     - insert_table
     - write_csv
-- from __Utilities.py__:
+- from __utilities.py__:
     - get_list_of_files
 
+# Updating to latest version
+
+Run either of the following commands
+
+    pip update functions
+    pipenv update functions
+
+# Uninstall
+
+To uninstall the package run either of the following commands depending on the one you used for installation.
+
+    pip uninstall functions
+    pipenv uninstall functions
