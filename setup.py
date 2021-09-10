@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='functions',
@@ -8,6 +8,6 @@ setup(
     author='Nicolas Paquet',
     author_email='nicolas.paquet@tractebel.engie.com',
     license='LICENSE.txt',
-    zip_safe=False
-)
+    zip_safe=False,
+    packages=find_packages(include=['functions', 'functions.*']))
 
