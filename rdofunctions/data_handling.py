@@ -9,7 +9,7 @@ import csv
 def db_list_of_tables(conn):
     """
     conn : connection to the DB
-    tables : retun the list of table names in the DB
+    Returns the list of table names in the DB
     """
     # Connection to the DB
     cursor = conn.cursor()
@@ -117,8 +117,8 @@ def create_db(path, dbName, note):
         print('The DB ', dbName, ' has been dropped')
         conn = sqlite3.connect(os.path.join(path, dbName))
         print('The DB ', dbName, ' has been created in ', path)
-    except:
-        print('The DB ', dbName, ' does not exist yet')
+    except Exceptions as ex:
+        print('The DB ', dbName, ' does not exist yet : ', ex)
         conn = sqlite3.connect(os.path.join(path, dbName))
         print('The DB ', dbName, ' has been created in ', path)
     
