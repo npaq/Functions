@@ -117,8 +117,8 @@ def create_db(path, dbName, note):
         print('The DB ', dbName, ' has been dropped')
         conn = sqlite3.connect(os.path.join(path, dbName))
         print('The DB ', dbName, ' has been created in ', path)
-    except Exceptions as ex:
-        print('The DB ', dbName, ' does not exist yet : ', ex)
+    except:
+        print('The DB ', dbName, ' does not exist yet')
         conn = sqlite3.connect(os.path.join(path, dbName))
         print('The DB ', dbName, ' has been created in ', path)
     
