@@ -7,7 +7,13 @@ Package of helper functions used in the radiological consequences calculation sc
 If you want to use this package in another project you can just clone its repository while in your project folder:
 
     git clone https://github.com/npaq/rdofunctions rdofunctions
-    
+
+If your project is already a git repository, you need to install it as a git submodule. To do so:
+
+	git submodule add https://github.com/npaq/rdofunctions rdofunctions
+	git submodule init
+	git submodule update
+
 # Usage
 
 ```python
